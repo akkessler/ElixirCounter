@@ -30,10 +30,9 @@ public class OverlayService extends Service {
 
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 
-        buttons = new Button[10];
+        buttons = new Button[11];
         for(int i=0; i<buttons.length; i++) {
-//            int counterValue = i != 0 ? i : -1; // FIXME There might be a cleaner way...
-            int counterValue = i;
+            int counterValue = i != 0 ? i : -1; // FIXME There might be a cleaner way...
             buttons[i] = new CounterButton(this, counterValue);
             WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
                     WindowManager.LayoutParams.WRAP_CONTENT,
