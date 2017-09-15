@@ -31,8 +31,8 @@ public class OverlayService extends Service {
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 
         buttons = new Button[11];
-        for(int i=0; i<buttons.length; i++) {
-            int counterValue = i != 0 ? i : -1; // FIXME There might be a cleaner way...
+        for(int i = 0; i < buttons.length; i++) {
+            int counterValue = i != 0 ? -i : 1; // FIXME There might be a cleaner way...
             buttons[i] = new CounterButton(this, counterValue);
             WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
                     WindowManager.LayoutParams.WRAP_CONTENT,
@@ -44,7 +44,7 @@ public class OverlayService extends Service {
             buttonParams.gravity = Gravity.LEFT | Gravity.TOP;
             // FIXME Change these values to be dynamic, based on dimensions of screen
             buttonParams.x = 25;
-            buttonParams.y = i * 150;
+            buttonParams.y = (buttons.length - i) * 150;
             windowManager.addView(buttons[i], buttonParams);
         }
     }
