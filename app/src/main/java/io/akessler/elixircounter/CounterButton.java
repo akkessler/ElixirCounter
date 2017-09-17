@@ -2,6 +2,7 @@ package io.akessler.elixircounter;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.support.v7.widget.AppCompatButton;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,11 +21,18 @@ public class CounterButton extends AppCompatButton implements OnTouchListener, O
         super(context);
         this.context = context;
         this.counterValue = counterValue;
+
         setOnTouchListener(this);
         setOnClickListener(this);
-        setText(String.valueOf(counterValue));
-        setTextColor(Color.MAGENTA);
 
+        String text = String.valueOf(counterValue);
+        if(counterValue > 0) {
+            text = '+' + text;
+        }
+        setText(text);
+        setTypeface(Typeface.MONOSPACE);
+        setTextColor(Color.MAGENTA);
+        setBackgroundColor(Color.argb(127,0,0,0));
     }
 
     @Override
