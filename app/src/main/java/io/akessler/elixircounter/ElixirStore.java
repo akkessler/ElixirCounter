@@ -1,6 +1,7 @@
 package io.akessler.elixircounter;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.view.Gravity;
 import android.view.WindowManager;
@@ -28,6 +29,7 @@ public class ElixirStore {
 
         elixirText = new TextView(context);
         elixirText.setText(String.valueOf(elixir));
+        elixirText.setTextColor(Color.MAGENTA);
 
         WindowManager.LayoutParams textParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
