@@ -6,7 +6,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.widget.Toast;
 
 /**
  * Created by Andy on 9/15/2017.
@@ -27,7 +26,7 @@ public class CounterButton extends AppCompatButton implements OnTouchListener, O
 
     @Override
     public void onClick(View v) {
-        Toast.makeText(context, String.valueOf(counterValue), Toast.LENGTH_SHORT).show();
+        ElixirStore.add(counterValue);
     }
 
     @Override

@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 
 /**
  * Created by Andy on 9/14/2017.
@@ -16,6 +17,7 @@ import android.widget.Button;
 public class OverlayService extends Service {
 
     WindowManager windowManager;
+
     Button[] buttons;
 
     @Nullable
@@ -47,6 +49,8 @@ public class OverlayService extends Service {
             buttonParams.y = (buttons.length - i) * 150;
             windowManager.addView(buttons[i], buttonParams);
         }
+
+        ElixirStore.createInstance(this, windowManager);
     }
 
     @Override
