@@ -4,6 +4,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.view.Gravity;
@@ -19,6 +20,10 @@ public class OverlayService extends Service {
     WindowManager windowManager;
 
     Button[] buttons;
+
+    CountDownTimer regularElixirTimer;
+
+    CountDownTimer doubleElixirTimer;
 
     @Nullable
     @Override
@@ -51,11 +56,38 @@ public class OverlayService extends Service {
         }
 
         ElixirStore.createInstance(this, windowManager);
+
+        doubleElixirTimer = new CountDownTimer(120000, 1400) {
+            public void onTick(long millisUntilFinished) {
+                ElixirStore.add(1);
+            }
+
+            public void onFinish() {
+                System.out.println("2x elixir time complete.");
+            }
+        };
+
+        regularElixirTimer = new CountDownTimer(120000, 2800) {
+            public void onTick(long millisUntilFinished) {
+                ElixirStore.add(1);
+            }
+
+            public void onFinish() {
+                System.out.println("1x elixir time complete.");
+                ElixirStore.add(1);
+                doubleElixirTimer.start();
+            }
+        };
+
+        regularElixirTimer.start();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        regularElixirTimer.cancel();
+        doubleElixirTimer.cancel();
+        // FIXME Remove TextView from ElixirStore
         for(int i=0; i<buttons.length; i++) {
             Button b = buttons[i];
             if(buttons[i] != null) {
