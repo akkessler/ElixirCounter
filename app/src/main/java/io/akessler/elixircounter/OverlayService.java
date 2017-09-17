@@ -8,6 +8,7 @@ import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 
@@ -19,6 +20,8 @@ public class OverlayService extends Service {
     WindowManager windowManager;
 
     Button[] counterButtons;
+
+    Button startButton;
 
     CountDownTimer regularElixirTimer;
 
@@ -39,7 +42,11 @@ public class OverlayService extends Service {
         ElixirStore.createInstance(this, windowManager); // TODO Revisit this design pattern...
 
         initTimers();
+
+        initStartButton(); // TODO initStopButton();
+
         initCounterButtons();
+
     }
 
     @Override
@@ -47,12 +54,13 @@ public class OverlayService extends Service {
         super.onDestroy();
         regularElixirTimer.cancel();
         doubleElixirTimer.cancel();
+
         // FIXME Remove TextView from ElixirStore
+        windowManager.removeView(startButton);
         for(int i = 0; i< counterButtons.length; i++) {
             Button b = counterButtons[i];
             if(counterButtons[i] != null) {
                 windowManager.removeView(b);
-                b = null;
             }
         }
     }
@@ -79,6 +87,30 @@ public class OverlayService extends Service {
                 doubleElixirTimer.start();
             }
         };
+    }
+
+    private void initStartButton() {
+        startButton = new Button(this);
+        startButton.setText("Start");
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                regularElixirTimer.start();
+                startButton.setEnabled(false);
+                startButton.setVisibility(View.GONE);
+            }
+        });
+        WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT
+        );
+        buttonParams.gravity = Gravity.CENTER;
+        buttonParams.x = 0;
+        buttonParams.y = 0;
+        windowManager.addView(startButton, buttonParams);
     }
 
     private void initCounterButtons() {
