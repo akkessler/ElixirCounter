@@ -13,6 +13,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
 /**
  * Created by Andy on 9/14/2017.
@@ -80,7 +81,7 @@ public class OverlayService extends Service {
             }
 
             public void onFinish() {
-                System.out.println("2x elixir time complete.");
+                Toast.makeText(OverlayService.this, R.string.timer_elixir2, Toast.LENGTH_SHORT).show();
             }
         };
 
@@ -90,7 +91,7 @@ public class OverlayService extends Service {
             }
 
             public void onFinish() {
-                System.out.println("1x elixir time complete.");
+                Toast.makeText(OverlayService.this, R.string.timer_elixir1, Toast.LENGTH_SHORT).show();
                 ElixirStore.add(1);
                 doubleElixirTimer.start();
             }
