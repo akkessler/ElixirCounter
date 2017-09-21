@@ -41,14 +41,12 @@ public class OverlayService extends Service {
 
         ElixirStore.createInstance(this, windowManager); // TODO Revisit this design pattern...
 
+        initNotificationIntent();
+
         initTimers();
-
         initStartButton(); // TODO initStopButton();
-
         initExitButton();
-
         initCounterButtons();
-
     }
 
     @Override
@@ -128,6 +126,7 @@ public class OverlayService extends Service {
             @Override
             public void onClick(View v) {
                 OverlayService.this.stopSelf();
+                OverlayService.this.stopForeground(true);
             }
         });
         WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
@@ -161,5 +160,21 @@ public class OverlayService extends Service {
             buttonParams.y = (counterButtons.length - i) * 150;
             windowManager.addView(counterButtons[i], buttonParams);
         }
+    }
+
+    private void initNotificationIntent() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+
+        PendingIntent pendingIntent =
+                PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+        Notification notification = new Notification.Builder(this)
+                .setContentTitle(getText(R.string.notification_title))
+                .setContentText(getText(R.string.notification_message))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentIntent(pendingIntent)
+                .build();
+
+        startForeground(1337, notification); // Do we ever need reference to the id (1337)?
     }
 }

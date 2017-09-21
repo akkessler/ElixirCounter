@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ElixirCounter</string>
+    <string name="notification_title">Service Status</string>
+    <string name="notification_message">Running</string>
 </resources>
