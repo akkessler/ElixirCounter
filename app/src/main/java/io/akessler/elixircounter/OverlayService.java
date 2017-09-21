@@ -137,8 +137,8 @@ public class OverlayService extends Service {
             );
             buttonParams.gravity = Gravity.LEFT | Gravity.TOP;
             // FIXME Change these values to be dynamic, based on dimensions of screen
-            buttonParams.x = 25;
-            buttonParams.y = (counterButtons.length - i) * 150;
+            buttonParams.x = 0;
+            buttonParams.y = (counterButtons.length - i) * 175;
             windowManager.addView(counterButtons[i], buttonParams);
         }
     }

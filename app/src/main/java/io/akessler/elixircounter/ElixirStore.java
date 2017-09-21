@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -34,6 +35,7 @@ public class ElixirStore {
         elixirText.setTextColor(Color.MAGENTA);
         elixirText.setTypeface(Typeface.MONOSPACE);
         elixirText.setBackgroundColor(Color.argb(127,0,0,0));
+        elixirText.setTextSize(TypedValue.COMPLEX_UNIT_PT, 14);
 
         WindowManager.LayoutParams textParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -42,10 +44,10 @@ public class ElixirStore {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
         );
-        textParams.gravity = Gravity.RIGHT | Gravity.TOP;
+        textParams.gravity = Gravity.RIGHT | Gravity.BOTTOM;
         // FIXME Change these values to be dynamic, based on dimensions of screen
-        textParams.x = 25;
-        textParams.y = 150;
+        textParams.x = 0;
+        textParams.y = 0;
 
         windowManager.addView(elixirText, textParams);
     }
