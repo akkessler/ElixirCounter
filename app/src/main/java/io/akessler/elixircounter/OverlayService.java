@@ -29,7 +29,7 @@ public class OverlayService extends Service {
 
     Button[] counterButtons;
 
-    Button startButton, exitButton;
+    Button startButton;
 
     CountDownTimer regularElixirTimer, doubleElixirTimer;
 
@@ -51,7 +51,6 @@ public class OverlayService extends Service {
 
         initTimers();
         initStartButton(); // TODO initStopButton();
-        initExitButton();
         initCounterButtons();
     }
 
@@ -63,7 +62,6 @@ public class OverlayService extends Service {
         doubleElixirTimer.cancel();
 
         windowManager.removeView(startButton);
-        windowManager.removeView(exitButton);
 
         for(int i = 0; i < counterButtons.length; i++) {
             Button b = counterButtons[i];
@@ -123,29 +121,6 @@ public class OverlayService extends Service {
         buttonParams.x = 0;
         buttonParams.y = 0;
         windowManager.addView(startButton, buttonParams);
-    }
-
-    private void initExitButton() {
-        exitButton = new Button(this);
-        exitButton.setText(R.string.button_exit);
-        exitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                OverlayService.this.stopSelf();
-                OverlayService.this.stopForeground(true);
-            }
-        });
-        WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT
-        );
-        buttonParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
-        buttonParams.x = 0;
-        buttonParams.y = 0;
-        windowManager.addView(exitButton, buttonParams);
     }
 
     private void initCounterButtons() {
