@@ -19,6 +19,8 @@ import android.widget.Button;
  */
 public class OverlayService extends Service {
 
+    private final static int ONGOING_NOTIFICATION_ID = 1337;
+
     WindowManager windowManager;
 
     Button[] counterButtons;
@@ -97,7 +99,7 @@ public class OverlayService extends Service {
 
     private void initStartButton() {
         startButton = new Button(this);
-        startButton.setText("Start");
+        startButton.setText(R.string.button_start);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -121,7 +123,7 @@ public class OverlayService extends Service {
 
     private void initExitButton() {
         exitButton = new Button(this);
-        exitButton.setText("Exit");
+        exitButton.setText(R.string.button_exit);
         exitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -175,6 +177,6 @@ public class OverlayService extends Service {
                 .setContentIntent(pendingIntent)
                 .build();
 
-        startForeground(1337, notification); // Do we ever need reference to the id (1337)?
+        startForeground(ONGOING_NOTIFICATION_ID, notification);
     }
 }

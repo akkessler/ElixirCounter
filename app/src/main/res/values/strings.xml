@@ -2,4 +2,7 @@
     <string name="app_name">ElixirCounter</string>
     <string name="notification_title">Service Status</string>
     <string name="notification_message">Running</string>
+    <string name="button_start">Start</string>
+    <string name="button_exit">Exit</string>
+
 </resources>
