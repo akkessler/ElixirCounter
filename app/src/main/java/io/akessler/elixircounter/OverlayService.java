@@ -9,6 +9,7 @@ import android.graphics.PixelFormat;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -21,6 +22,8 @@ import android.widget.Toast;
 public class OverlayService extends Service {
 
     private final static int ONGOING_NOTIFICATION_ID = 1337;
+
+    private final static String EXIT_ACTION = "io.akessler.elixircounter.action.exit";
 
     WindowManager windowManager;
 
@@ -165,17 +168,37 @@ public class OverlayService extends Service {
         }
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if(EXIT_ACTION.equals(intent.getAction())) {
+            stopForeground(true);
+            stopSelf();
+        }
+        return START_STICKY;
+    }
+
     private void initNotificationIntent() {
         Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, notificationIntent, 0);
 
-        PendingIntent pendingIntent =
-                PendingIntent.getActivity(this, 0, notificationIntent, 0);
+        Intent exitIntent = new Intent(this, OverlayService.class);
+        exitIntent.setAction(EXIT_ACTION);
+        PendingIntent exitPendingIntent = PendingIntent.getService(
+                this, 0, exitIntent, 0);
+        NotificationCompat.Action exitAction = new NotificationCompat.Action.Builder(
+                android.R.drawable.ic_delete,
+                getText(R.string.button_exit),
+                exitPendingIntent).build();
 
-        Notification notification = new Notification.Builder(this)
+        Notification notification = new NotificationCompat.Builder(this)
                 .setContentTitle(getText(R.string.notification_title))
                 .setContentText(getText(R.string.notification_message))
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(pendingIntent)
+                .setOngoing(true)
+                .setColor(0xFF00FF)
+                .addAction(exitAction)
                 .build();
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
