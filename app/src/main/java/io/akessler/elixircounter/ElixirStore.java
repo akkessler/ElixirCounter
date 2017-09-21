@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
 import android.view.Gravity;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -75,5 +76,11 @@ public class ElixirStore {
 
     public static int getElixir() {
         return elixir;
+    }
+
+    public static View getTextView() { return elixirText; }
+
+    public static void destroy() {
+        elixirStore = null;
     }
 }

@@ -1,5 +1,7 @@
 package io.akessler.elixircounter;
 
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -21,11 +23,9 @@ public class OverlayService extends Service {
 
     Button[] counterButtons;
 
-    Button startButton;
+    Button startButton, exitButton;
 
-    CountDownTimer regularElixirTimer;
-
-    CountDownTimer doubleElixirTimer;
+    CountDownTimer regularElixirTimer, doubleElixirTimer;
 
     @Nullable
     @Override
@@ -45,6 +45,8 @@ public class OverlayService extends Service {
 
         initStartButton(); // TODO initStopButton();
 
+        initExitButton();
+
         initCounterButtons();
 
     }
@@ -52,17 +54,23 @@ public class OverlayService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
         regularElixirTimer.cancel();
         doubleElixirTimer.cancel();
 
-        // FIXME Remove TextView from ElixirStore
         windowManager.removeView(startButton);
-        for(int i = 0; i< counterButtons.length; i++) {
+        windowManager.removeView(exitButton);
+
+        for(int i = 0; i < counterButtons.length; i++) {
             Button b = counterButtons[i];
             if(counterButtons[i] != null) {
                 windowManager.removeView(b);
             }
         }
+
+        // TODO Refactor?
+        windowManager.removeView(ElixirStore.getTextView());
+        ElixirStore.destroy(); // needed?
     }
 
     private void initTimers() {
@@ -111,6 +119,28 @@ public class OverlayService extends Service {
         buttonParams.x = 0;
         buttonParams.y = 0;
         windowManager.addView(startButton, buttonParams);
+    }
+
+    private void initExitButton() {
+        exitButton = new Button(this);
+        exitButton.setText("Exit");
+        exitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                OverlayService.this.stopSelf();
+            }
+        });
+        WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT
+        );
+        buttonParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
+        buttonParams.x = 0;
+        buttonParams.y = 0;
+        windowManager.addView(exitButton, buttonParams);
     }
 
     private void initCounterButtons() {
