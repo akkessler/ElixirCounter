@@ -5,31 +5,51 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.graphics.Typeface;
+import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.IOException;
+
+import edu.cmu.pocketsphinx.Assets;
+import edu.cmu.pocketsphinx.Hypothesis;
+import edu.cmu.pocketsphinx.RecognitionListener;
+import edu.cmu.pocketsphinx.SpeechRecognizer;
+import edu.cmu.pocketsphinx.SpeechRecognizerSetup;
 
 /**
  * Created by Andy on 9/14/2017.
  */
-public class OverlayService extends Service {
+public class OverlayService extends Service implements RecognitionListener {
 
     private final static int ONGOING_NOTIFICATION_ID = 1337;
 
     private final static String EXIT_ACTION = "io.akessler.elixircounter.action.exit";
+
+    private final static String DIGITS_SEARCH = "digits";
+
+    private SpeechRecognizer recognizer;
 
     WindowManager windowManager;
 
     Button[] counterButtons;
 
     Button startButton;
+
+    TextView speechText;
 
     CountDownTimer regularElixirTimer, doubleElixirTimer;
 
@@ -52,16 +72,25 @@ public class OverlayService extends Service {
         initTimers();
         initStartButton(); // TODO initStopButton();
         initCounterButtons();
+        initSpeechText();
+
+        runRecognizerSetup();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
 
+        if (recognizer != null) {
+            recognizer.cancel();
+            recognizer.shutdown();
+        }
+
         regularElixirTimer.cancel();
         doubleElixirTimer.cancel();
 
         windowManager.removeView(startButton);
+        windowManager.removeView(speechText);
 
         for(int i = 0; i < counterButtons.length; i++) {
             Button b = counterButtons[i];
@@ -143,6 +172,26 @@ public class OverlayService extends Service {
         }
     }
 
+    private void initSpeechText() {
+        speechText = new TextView(this);
+        speechText.setText("");
+        speechText.setTypeface(Typeface.MONOSPACE);
+        speechText.setTextColor(Color.MAGENTA);
+        speechText.setBackgroundColor(Color.argb(127,0,0,0));
+        speechText.setTextSize(TypedValue.COMPLEX_UNIT_PT, 14);
+        WindowManager.LayoutParams textParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT
+        );
+        textParams.gravity = Gravity.TOP;
+        textParams.x = 0;
+        textParams.y = 0;
+        windowManager.addView(speechText, textParams);
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if(EXIT_ACTION.equals(intent.getAction())) {
@@ -177,5 +226,87 @@ public class OverlayService extends Service {
                 .build();
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
+    }
+
+    private void runRecognizerSetup() {
+        // Recognizer initialization is a time-consuming and it involves IO,
+        // so we execute it in async task
+        new AsyncTask<Void, Void, Exception>() {
+            @Override
+            protected Exception doInBackground(Void... params) {
+                try {
+                    Assets assets = new Assets(OverlayService.this);
+                    File assetDir = assets.syncAssets();
+                    setupRecognizer(assetDir);
+                } catch (IOException e) {
+                    return e;
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Exception result) {
+                if (result != null) {
+                    String text = "Failed to init recognizer " + result;
+                    Toast.makeText(OverlayService.this, text, Toast.LENGTH_SHORT).show();
+                } else {
+                    recognizer.startListening(DIGITS_SEARCH);
+                }
+            }
+        }.execute();
+    }
+
+    private void setupRecognizer(File assetsDir) throws IOException {
+
+        recognizer = SpeechRecognizerSetup.defaultSetup()
+                .setAcousticModel(new File(assetsDir, "en-us-ptm"))
+                .setDictionary(new File(assetsDir, "cmudict-en-us.dict"))
+//                .setRawLogDir(assetsDir) // To disable logging of raw audio comment out this call (takes a lot of space on the device)
+                .getRecognizer();
+        recognizer.addListener(this);
+
+        // Create grammar-based search for digit recognition
+        File digitsGrammar = new File(assetsDir, "digits.gram");
+        recognizer.addGrammarSearch(DIGITS_SEARCH, digitsGrammar);
+
+//        // Phonetic search
+//        File phoneticModel = new File(assetsDir, "en-phone.dmp");
+//        recognizer.addAllphoneSearch(PHONE_SEARCH, phoneticModel);
+    }
+
+    @Override
+    public void onBeginningOfSpeech() {
+        // Do nothing
+    }
+
+    @Override
+    public void onEndOfSpeech() {
+        recognizer.stop();
+        recognizer.startListening(DIGITS_SEARCH);
+    }
+
+    @Override
+    public void onPartialResult(Hypothesis hypothesis) {
+        // Do nothing
+    }
+
+    @Override
+    public void onResult(Hypothesis hypothesis) {
+        if(hypothesis != null) {
+            String text = hypothesis.getHypstr();
+            speechText.setText(text);
+        }
+    }
+
+    @Override
+    public void onError(Exception e) {
+        System.err.println(e.toString());
+        Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onTimeout() {
+        Toast.makeText(this, "Recognizer timeout", Toast.LENGTH_SHORT).show();
+
     }
 }
