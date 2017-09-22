@@ -294,7 +294,10 @@ public class OverlayService extends Service implements RecognitionListener {
     public void onResult(Hypothesis hypothesis) {
         if(hypothesis != null) {
             String text = hypothesis.getHypstr();
-            speechText.setText(text);
+            ElixirValue ev = ElixirValue.valueOf(text.toUpperCase()); // TODO Handle IllegalArgumentException
+            int value = ev.getValue();
+            ElixirStore.add(value);
+            speechText.setText(String.valueOf(value));
         }
     }
 
