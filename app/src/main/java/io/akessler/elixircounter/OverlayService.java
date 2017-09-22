@@ -25,23 +25,19 @@ import java.io.File;
 import java.io.IOException;
 
 import edu.cmu.pocketsphinx.Assets;
-import edu.cmu.pocketsphinx.Hypothesis;
-import edu.cmu.pocketsphinx.RecognitionListener;
 import edu.cmu.pocketsphinx.SpeechRecognizer;
 import edu.cmu.pocketsphinx.SpeechRecognizerSetup;
 
 /**
  * Created by Andy on 9/14/2017.
  */
-public class OverlayService extends Service implements RecognitionListener {
+public class OverlayService extends Service {
 
     private final static int ONGOING_NOTIFICATION_ID = 1337;
 
     private final static String EXIT_ACTION = "io.akessler.elixircounter.action.exit";
 
-    private final static String DIGITS_SEARCH = "digits";
-
-    private SpeechRecognizer recognizer;
+    private final static String DIGITS_SEARCH = "digits"; // FIXME In 2 locations
 
     WindowManager windowManager;
 
@@ -49,9 +45,11 @@ public class OverlayService extends Service implements RecognitionListener {
 
     Button startButton;
 
+    CountDownTimer regularElixirTimer, doubleElixirTimer;
+
     TextView speechText;
 
-    CountDownTimer regularElixirTimer, doubleElixirTimer;
+    SpeechRecognizer recognizer;
 
     @Nullable
     @Override
@@ -89,8 +87,12 @@ public class OverlayService extends Service implements RecognitionListener {
         regularElixirTimer.cancel();
         doubleElixirTimer.cancel();
 
-        windowManager.removeView(startButton);
+        // TODO Refactor?
+        ElixirStore.destroy(); // needed?
+        windowManager.removeView(ElixirStore.getTextView());
+
         windowManager.removeView(speechText);
+        windowManager.removeView(startButton);
 
         for(int i = 0; i < counterButtons.length; i++) {
             Button b = counterButtons[i];
@@ -98,10 +100,50 @@ public class OverlayService extends Service implements RecognitionListener {
                 windowManager.removeView(b);
             }
         }
+    }
 
-        // TODO Refactor?
-        windowManager.removeView(ElixirStore.getTextView());
-        ElixirStore.destroy(); // needed?
+    private void runRecognizerSetup() {
+        // Recognizer initialization is a time-consuming and it involves IO,
+        // so we execute it in async task
+        new AsyncTask<Void, Void, Exception>() {
+            @Override
+            protected Exception doInBackground(Void... params) {
+                try {
+                    Assets assets = new Assets(OverlayService.this);
+                    File assetDir = assets.syncAssets();
+                    setupRecognizer(assetDir);
+                } catch (IOException e) {
+                    return e;
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Exception result) {
+                if (result != null) {
+                    String text = "Failed to init recognizer " + result;
+                    Toast.makeText(OverlayService.this, text, Toast.LENGTH_SHORT).show();
+                } else {
+                    recognizer.startListening(DIGITS_SEARCH);
+                }
+            }
+        }.execute();
+    }
+
+    private void setupRecognizer(File assetsDir) throws IOException {
+
+        recognizer = SpeechRecognizerSetup.defaultSetup()
+                .setAcousticModel(new File(assetsDir, "en-us-ptm"))
+                .setDictionary(new File(assetsDir, "cmudict-en-us.dict"))
+//                .setRawLogDir(assetsDir) // To disable logging of raw audio comment out this call (takes a lot of space on the device)
+                .getRecognizer();
+        // Seems slightly odd to pass reference of recognizer to the impl?
+        RecognitionListenerImpl recognitionListener = new RecognitionListenerImpl(recognizer, speechText);
+        recognizer.addListener(recognitionListener);
+
+        // Create grammar-based search for digit recognition
+        File digitsGrammar = new File(assetsDir, "digits.gram");
+        recognizer.addGrammarSearch(DIGITS_SEARCH, digitsGrammar);
     }
 
     private void initTimers() {
@@ -228,92 +270,5 @@ public class OverlayService extends Service implements RecognitionListener {
         startForeground(ONGOING_NOTIFICATION_ID, notification);
     }
 
-    private void runRecognizerSetup() {
-        // Recognizer initialization is a time-consuming and it involves IO,
-        // so we execute it in async task
-        new AsyncTask<Void, Void, Exception>() {
-            @Override
-            protected Exception doInBackground(Void... params) {
-                try {
-                    Assets assets = new Assets(OverlayService.this);
-                    File assetDir = assets.syncAssets();
-                    setupRecognizer(assetDir);
-                } catch (IOException e) {
-                    return e;
-                }
-                return null;
-            }
 
-            @Override
-            protected void onPostExecute(Exception result) {
-                if (result != null) {
-                    String text = "Failed to init recognizer " + result;
-                    Toast.makeText(OverlayService.this, text, Toast.LENGTH_SHORT).show();
-                } else {
-                    recognizer.startListening(DIGITS_SEARCH);
-                }
-            }
-        }.execute();
-    }
-
-    private void setupRecognizer(File assetsDir) throws IOException {
-
-        recognizer = SpeechRecognizerSetup.defaultSetup()
-                .setAcousticModel(new File(assetsDir, "en-us-ptm"))
-                .setDictionary(new File(assetsDir, "cmudict-en-us.dict"))
-//                .setRawLogDir(assetsDir) // To disable logging of raw audio comment out this call (takes a lot of space on the device)
-                .getRecognizer();
-        recognizer.addListener(this);
-
-        // Create grammar-based search for digit recognition
-        File digitsGrammar = new File(assetsDir, "digits.gram");
-        recognizer.addGrammarSearch(DIGITS_SEARCH, digitsGrammar);
-
-//        // Phonetic search
-//        File phoneticModel = new File(assetsDir, "en-phone.dmp");
-//        recognizer.addAllphoneSearch(PHONE_SEARCH, phoneticModel);
-    }
-
-    @Override
-    public void onBeginningOfSpeech() {
-        // Do nothing
-    }
-
-    @Override
-    public void onEndOfSpeech() {
-        recognizer.stop();
-        recognizer.startListening(DIGITS_SEARCH);
-    }
-
-    @Override
-    public void onPartialResult(Hypothesis hypothesis) {
-        // Do nothing
-    }
-
-    @Override
-    public void onResult(Hypothesis hypothesis) {
-        if(hypothesis != null) {
-            String displayText = "";
-            String text = hypothesis.getHypstr();
-            for(String token : text.split("\\s+")) {
-                ElixirValue ev = ElixirValue.valueOf(token.toUpperCase()); // TODO Handle IllegalArgumentException
-                int value = ev.getValue();
-                ElixirStore.add(value);
-                displayText += value + ' ';
-            }
-            speechText.setText(displayText);
-        }
-    }
-
-    @Override
-    public void onError(Exception e) {
-        System.err.println(e.toString());
-        Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onTimeout() {
-        Toast.makeText(this, "Recognizer timeout", Toast.LENGTH_SHORT).show();
-
-    }
 }
