@@ -293,13 +293,15 @@ public class OverlayService extends Service implements RecognitionListener {
     @Override
     public void onResult(Hypothesis hypothesis) {
         if(hypothesis != null) {
+            String displayText = "";
             String text = hypothesis.getHypstr();
             for(String token : text.split("\\s+")) {
                 ElixirValue ev = ElixirValue.valueOf(token.toUpperCase()); // TODO Handle IllegalArgumentException
                 int value = ev.getValue();
                 ElixirStore.add(value);
+                displayText += value + ' ';
             }
-            speechText.setText(String.valueOf(text));
+            speechText.setText(displayText);
         }
     }
 
