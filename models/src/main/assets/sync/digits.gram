@@ -2,7 +2,7 @@
 
 grammar digits;
 
-<digit> = ten    |
+<digit> = pump  |
           one   |
           two   |
           three |
@@ -11,6 +11,7 @@ grammar digits;
           six   |
           seven |
           eight |
-          nine  ;
+          nine  |
+          ten   ;
 
 public <digits> = <digit>+;
