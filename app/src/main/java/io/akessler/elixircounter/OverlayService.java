@@ -275,7 +275,7 @@ public class OverlayService extends Service {
                         | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
         );
-        textParams.gravity = Gravity.BOTTOM;
+        textParams.gravity = Gravity.LEFT;
         textParams.x = 0;
         textParams.y = 0;
         windowManager.addView(speechText, textParams);

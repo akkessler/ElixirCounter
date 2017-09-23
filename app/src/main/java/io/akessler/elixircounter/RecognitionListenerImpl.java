@@ -51,9 +51,9 @@ public class RecognitionListenerImpl implements RecognitionListener {
                 ElixirValue ev = ElixirValue.valueOf(token.toUpperCase()); // TODO Handle IllegalArgumentException
                 int value = ev.getValue();
                 elixirStore.add(value);
-                displayText += String.valueOf(value) + ' ';
+                displayText += String.valueOf(value) + '\n';
             }
-            speechText.setText(displayText);
+            speechText.setText(displayText.substring(0, displayText.length() - 1));
         }
     }
 
