@@ -32,4 +32,10 @@ public enum ElixirValue {
     public int getValue() {
         return value;
     }
+
+    public String getDisplayValue() {
+        if(this.equals(PUMP))
+            return "P";
+        return String.valueOf(-value);
+    }
 }
