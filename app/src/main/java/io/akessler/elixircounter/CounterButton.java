@@ -15,12 +15,12 @@ import android.view.View.OnTouchListener;
  */
 public class CounterButton extends AppCompatButton implements OnTouchListener, OnClickListener {
 
-    private Context context;
     private int counterValue;
 
-    public CounterButton(Context context, int counterValue) {
+    private ElixirStore elixirStore;
+
+    public CounterButton(Context context, ElixirStore elixirStore, int counterValue) {
         super(context);
-        this.context = context;
         this.counterValue = counterValue;
 
         setOnTouchListener(this);
@@ -39,7 +39,7 @@ public class CounterButton extends AppCompatButton implements OnTouchListener, O
 
     @Override
     public void onClick(View v) {
-        ElixirStore.add(counterValue);
+        elixirStore.add(counterValue);
     }
 
     @Override

@@ -47,9 +47,11 @@ public class OverlayService extends Service {
 
     CountDownTimer regularElixirTimer, doubleElixirTimer;
 
-    TextView speechText;
+    TextView elixirText, speechText;
 
     SpeechRecognizer recognizer;
+
+    ElixirStore elixirStore;
 
     @Nullable
     @Override
@@ -63,14 +65,15 @@ public class OverlayService extends Service {
 
         windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 
-        ElixirStore.createInstance(this, windowManager); // TODO Revisit this design pattern...
-
         initNotificationIntent();
 
         initTimers();
         initStartButton(); // TODO initStopButton();
         initCounterButtons();
+        initElixirText();
         initSpeechText();
+
+        elixirStore = new ElixirStore(elixirText);
 
         runRecognizerSetup();
     }
@@ -87,12 +90,9 @@ public class OverlayService extends Service {
         regularElixirTimer.cancel();
         doubleElixirTimer.cancel();
 
-        // TODO Refactor?
-        ElixirStore.destroy(); // needed?
-        windowManager.removeView(ElixirStore.getTextView());
-
-        windowManager.removeView(speechText);
         windowManager.removeView(startButton);
+        windowManager.removeView(elixirText);
+        windowManager.removeView(speechText);
 
         for(int i = 0; i < counterButtons.length; i++) {
             Button b = counterButtons[i];
@@ -131,14 +131,13 @@ public class OverlayService extends Service {
     }
 
     private void setupRecognizer(File assetsDir) throws IOException {
-
         recognizer = SpeechRecognizerSetup.defaultSetup()
                 .setAcousticModel(new File(assetsDir, "en-us-ptm"))
                 .setDictionary(new File(assetsDir, "cmudict-en-us.dict"))
 //                .setRawLogDir(assetsDir) // To disable logging of raw audio comment out this call (takes a lot of space on the device)
                 .getRecognizer();
         // Seems slightly odd to pass reference of recognizer to the impl?
-        RecognitionListenerImpl recognitionListener = new RecognitionListenerImpl(recognizer, speechText);
+        RecognitionListenerImpl recognitionListener = new RecognitionListenerImpl(recognizer, elixirStore, speechText);
         recognizer.addListener(recognitionListener);
 
         // Create grammar-based search for digit recognition
@@ -149,7 +148,7 @@ public class OverlayService extends Service {
     private void initTimers() {
         doubleElixirTimer = new CountDownTimer(120000, 1400) {
             public void onTick(long millisUntilFinished) {
-                ElixirStore.add(1);
+                elixirStore.add(1);
             }
 
             public void onFinish() {
@@ -159,12 +158,12 @@ public class OverlayService extends Service {
 
         regularElixirTimer = new CountDownTimer(120000, 2800) {
             public void onTick(long millisUntilFinished) {
-                ElixirStore.add(1);
+                elixirStore.add(1);
             }
 
             public void onFinish() {
                 Toast.makeText(OverlayService.this, R.string.timer_elixir1, Toast.LENGTH_SHORT).show();
-                ElixirStore.add(1);
+                elixirStore.add(1);
                 doubleElixirTimer.start();
             }
         };
@@ -198,7 +197,7 @@ public class OverlayService extends Service {
         counterButtons = new Button[11];
         for(int i = 0; i < counterButtons.length; i++) {
             int counterValue = i != 0 ? -i : 1; // FIXME There might be a cleaner way...
-            counterButtons[i] = new CounterButton(this, counterValue);
+            counterButtons[i] = new CounterButton(this, elixirStore, counterValue);
             WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
                     WindowManager.LayoutParams.WRAP_CONTENT,
                     WindowManager.LayoutParams.WRAP_CONTENT,
@@ -212,6 +211,27 @@ public class OverlayService extends Service {
             buttonParams.y = (counterButtons.length - i) * 175;
             windowManager.addView(counterButtons[i], buttonParams);
         }
+    }
+
+    private void initElixirText() {
+        elixirText = new TextView(this);
+        elixirText.setTextColor(Color.MAGENTA);
+        elixirText.setTypeface(Typeface.MONOSPACE);
+        elixirText.setBackgroundColor(Color.argb(127,0,0,0));
+        elixirText.setTextSize(TypedValue.COMPLEX_UNIT_PT, 14);
+
+        WindowManager.LayoutParams textParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT
+        );
+        textParams.gravity = Gravity.RIGHT | Gravity.BOTTOM;
+        // FIXME Change these values to be dynamic, based on dimensions of screen
+        textParams.x = 0;
+        textParams.y = 0;
+        windowManager.addView(elixirText, textParams);
     }
 
     private void initSpeechText() {

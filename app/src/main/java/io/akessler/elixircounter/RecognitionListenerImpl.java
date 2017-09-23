@@ -16,10 +16,13 @@ public class RecognitionListenerImpl implements RecognitionListener {
 
     private SpeechRecognizer recognizer;
 
+    private ElixirStore elixirStore;
+
     private TextView speechText;
 
-    public RecognitionListenerImpl(SpeechRecognizer recognizer, TextView speechText) {
+    public RecognitionListenerImpl(SpeechRecognizer recognizer, ElixirStore elixirStore, TextView speechText) {
         this.speechText = speechText;
+        this.elixirStore = elixirStore;
         this.recognizer = recognizer;
     }
 
@@ -47,7 +50,7 @@ public class RecognitionListenerImpl implements RecognitionListener {
             for(String token : text.split("\\s+")) {
                 ElixirValue ev = ElixirValue.valueOf(token.toUpperCase()); // TODO Handle IllegalArgumentException
                 int value = ev.getValue();
-                ElixirStore.add(value);
+                elixirStore.add(value);
                 displayText += String.valueOf(value) + ' ';
             }
             speechText.setText(displayText);
