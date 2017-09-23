@@ -40,11 +40,13 @@ public class OverlayService extends Service {
 
     private final static String EXIT_ACTION = "io.akessler.elixircounter.action.exit";
 
+    private final static String STOP_ACTION = "io.akessler.elixircounter.action.stop";
+
     private final static String DIGITS_SEARCH = "digits"; // FIXME In 2 locations
 
     WindowManager windowManager;
 
-    FloatingActionButton startButton, stopButton;
+    FloatingActionButton startButton;
 
     CountDownTimer regularElixirTimer, doubleElixirTimer;
 
@@ -74,7 +76,6 @@ public class OverlayService extends Service {
 
         initTimers();
         initStartButton();
-        initStopButton();
         initElixirBar();
         initElixirText();
         initSpeechText();
@@ -111,8 +112,6 @@ public class OverlayService extends Service {
 
             startButton.setEnabled(false);
             startButton.hide();
-            stopButton.setEnabled(true);
-            stopButton.show();
         }
     }
 
@@ -127,8 +126,7 @@ public class OverlayService extends Service {
 
         startButton.setEnabled(true);
         startButton.show();
-        stopButton.setEnabled(false);
-        stopButton.hide();
+
         speechText.setText("");
     }
 
@@ -218,36 +216,10 @@ public class OverlayService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
         );
-        buttonParams.gravity = Gravity.BOTTOM | Gravity.LEFT;
+        buttonParams.gravity = Gravity.CENTER;
         buttonParams.x = 0;
-        buttonParams.y = 275;
+        buttonParams.y = 0;
         windowManager.addView(startButton, buttonParams);
-    }
-
-    private void initStopButton() {
-        Context context = new ContextThemeWrapper(this, R.style.AppTheme); // TODO Figure out why wrapper is needed
-        stopButton = new FloatingActionButton(context);
-        stopButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
-        stopButton.setEnabled(false);
-        stopButton.hide();
-        stopButton.setImageResource(android.R.drawable.ic_media_pause);
-        stopButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stop();
-            }
-        });
-        WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT
-        );
-        buttonParams.gravity = Gravity.BOTTOM | Gravity.LEFT;
-        buttonParams.x = 0;
-        buttonParams.y = 275;
-        windowManager.addView(stopButton, buttonParams);
     }
 
     private void initElixirBar() {
@@ -315,7 +287,10 @@ public class OverlayService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if(EXIT_ACTION.equals(intent.getAction())) {
+        if(STOP_ACTION.equals(intent.getAction())) {
+            stop();
+        }
+        else if(EXIT_ACTION.equals(intent.getAction())) {
             stopForeground(true);
             stopSelf();
         }
@@ -326,6 +301,15 @@ public class OverlayService extends Service {
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this, 0, notificationIntent, 0);
+
+        Intent stopIntent = new Intent(this, OverlayService.class);
+        stopIntent.setAction(STOP_ACTION);
+        PendingIntent stopPendingIntent = PendingIntent.getService(
+                this, 0, stopIntent, 0);
+        NotificationCompat.Action stopAction = new NotificationCompat.Action.Builder(
+                android.R.drawable.ic_media_pause,
+                getText(R.string.button_stop),
+                stopPendingIntent).build();
 
         Intent exitIntent = new Intent(this, OverlayService.class);
         exitIntent.setAction(EXIT_ACTION);
@@ -344,6 +328,7 @@ public class OverlayService extends Service {
                 .setOngoing(true)
                 .setColor(0xFF00FF)
                 .addAction(exitAction)
+                .addAction(stopAction)
                 .build();
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
