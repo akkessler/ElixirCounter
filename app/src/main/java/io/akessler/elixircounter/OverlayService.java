@@ -69,7 +69,7 @@ public class OverlayService extends Service {
 
         initTimers();
         initStartButton(); // TODO initStopButton();
-        initCounterButtons();
+//        initCounterButtons(); // Comment out since using SpeechRecognizer
         initElixirText();
         initSpeechText();
 
@@ -94,12 +94,12 @@ public class OverlayService extends Service {
         windowManager.removeView(elixirText);
         windowManager.removeView(speechText);
 
-        for(int i = 0; i < counterButtons.length; i++) {
-            Button b = counterButtons[i];
-            if(counterButtons[i] != null) {
-                windowManager.removeView(b);
-            }
-        }
+//        for(int i = 0; i < counterButtons.length; i++) {
+//            Button b = counterButtons[i];
+//            if(counterButtons[i] != null) {
+//                windowManager.removeView(b);
+//            }
+//        }
     }
 
     private void runRecognizerSetup() {
