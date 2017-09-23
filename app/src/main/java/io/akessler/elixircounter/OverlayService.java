@@ -5,6 +5,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
@@ -12,7 +13,9 @@ import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.view.ContextThemeWrapper;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -44,7 +47,7 @@ public class OverlayService extends Service {
 
     Button[] counterButtons;
 
-    Button startButton, stopButton;
+    FloatingActionButton startButton, stopButton;
 
     CountDownTimer regularElixirTimer, doubleElixirTimer;
 
@@ -118,9 +121,9 @@ public class OverlayService extends Service {
             regularElixirTimer.start();
 
             startButton.setEnabled(false);
-            startButton.setVisibility(View.GONE);
+            startButton.hide();
             stopButton.setEnabled(true);
-            stopButton.setVisibility(View.VISIBLE);
+            stopButton.show();
         }
     }
 
@@ -134,9 +137,9 @@ public class OverlayService extends Service {
         elixirStore.reset();
 
         startButton.setEnabled(true);
-        startButton.setVisibility(View.VISIBLE);
+        startButton.show();
         stopButton.setEnabled(false);
-        stopButton.setVisibility(View.GONE);
+        stopButton.hide();
         speechText.setText("");
     }
 
@@ -209,8 +212,10 @@ public class OverlayService extends Service {
     }
 
     private void initStartButton() {
-        startButton = new Button(this);
-        startButton.setText(R.string.button_start);
+        Context context = new ContextThemeWrapper(this, R.style.AppTheme); // TODO Figure out why wrapper is needed
+        startButton = new FloatingActionButton(context);
+        startButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
+        startButton.setImageResource(android.R.drawable.ic_media_play);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -231,10 +236,12 @@ public class OverlayService extends Service {
     }
 
     private void initStopButton() {
-        stopButton = new Button(this);
+        Context context = new ContextThemeWrapper(this, R.style.AppTheme); // TODO Figure out why wrapper is needed
+        stopButton = new FloatingActionButton(context);
+        stopButton.setBackgroundTintList(ColorStateList.valueOf(Color.MAGENTA));
         stopButton.setEnabled(false);
-        stopButton.setVisibility(View.GONE);
-        stopButton.setText(R.string.button_stop);
+        stopButton.hide();
+        stopButton.setImageResource(android.R.drawable.ic_media_pause);
         stopButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
