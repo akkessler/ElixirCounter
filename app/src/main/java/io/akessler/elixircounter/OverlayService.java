@@ -285,6 +285,7 @@ public class OverlayService extends Service {
         elixirBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         elixirBar.getProgressDrawable().setColorFilter(Color.MAGENTA, android.graphics.PorterDuff.Mode.SRC_IN);
         elixirBar.setIndeterminate(false);
+        elixirBar.setScaleY(4f);
         WindowManager.LayoutParams barParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -304,7 +305,7 @@ public class OverlayService extends Service {
         elixirText = new TextView(this);
         elixirText.setTextColor(Color.MAGENTA);
         elixirText.setTypeface(Typeface.MONOSPACE);
-//        elixirText.setBackgroundColor(Color.argb(127,0,0,0));
+        elixirText.setBackgroundColor(Color.argb(127,0,0,0));
         elixirText.setTextSize(TypedValue.COMPLEX_UNIT_PT, 14);
 
         WindowManager.LayoutParams textParams = new WindowManager.LayoutParams(
@@ -318,7 +319,7 @@ public class OverlayService extends Service {
         textParams.gravity = Gravity.TOP;
         // FIXME Change these values to be dynamic, based on dimensions of screen
         textParams.x = 0;
-        textParams.y = 42;
+        textParams.y = 100;
         windowManager.addView(elixirText, textParams);
     }
 
