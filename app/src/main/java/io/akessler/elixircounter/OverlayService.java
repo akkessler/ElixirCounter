@@ -20,7 +20,6 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,8 +43,6 @@ public class OverlayService extends Service {
     private final static String DIGITS_SEARCH = "digits"; // FIXME In 2 locations
 
     WindowManager windowManager;
-
-    Button[] counterButtons;
 
     FloatingActionButton startButton, stopButton;
 
@@ -78,7 +75,6 @@ public class OverlayService extends Service {
         initTimers();
         initStartButton();
         initStopButton();
-//        initCounterButtons(); // Comment out since using SpeechRecognizer
         initElixirBar();
         initElixirText();
         initSpeechText();
@@ -104,13 +100,6 @@ public class OverlayService extends Service {
         windowManager.removeView(startButton);
         windowManager.removeView(elixirText);
         windowManager.removeView(speechText);
-
-//        for(int i = 0; i < counterButtons.length; i++) {
-//            Button b = counterButtons[i];
-//            if(counterButtons[i] != null) {
-//                windowManager.removeView(b);
-//            }
-//        }
     }
 
     private void start() {
@@ -259,26 +248,6 @@ public class OverlayService extends Service {
         buttonParams.x = 0;
         buttonParams.y = 275;
         windowManager.addView(stopButton, buttonParams);
-    }
-
-    private void initCounterButtons() {
-        counterButtons = new Button[11];
-        for(int i = 0; i < counterButtons.length; i++) {
-            int counterValue = i != 0 ? -i : 1; // FIXME There might be a cleaner way...
-            counterButtons[i] = new CounterButton(this, elixirStore, counterValue);
-            WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
-                    WindowManager.LayoutParams.WRAP_CONTENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT,
-                    WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
-                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                    PixelFormat.TRANSLUCENT
-            );
-            buttonParams.gravity = Gravity.LEFT | Gravity.TOP;
-            // FIXME Change these values to be dynamic, based on dimensions of screen
-            buttonParams.x = 0;
-            buttonParams.y = (counterButtons.length - i) * 175;
-            windowManager.addView(counterButtons[i], buttonParams);
-        }
     }
 
     private void initElixirBar() {
