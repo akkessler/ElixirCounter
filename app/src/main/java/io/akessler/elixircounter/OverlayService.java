@@ -231,7 +231,7 @@ public class OverlayService extends Service {
         );
         buttonParams.gravity = Gravity.BOTTOM | Gravity.LEFT;
         buttonParams.x = 0;
-        buttonParams.y = 0;
+        buttonParams.y = 275;
         windowManager.addView(startButton, buttonParams);
     }
 
@@ -257,7 +257,7 @@ public class OverlayService extends Service {
         );
         buttonParams.gravity = Gravity.BOTTOM | Gravity.LEFT;
         buttonParams.x = 0;
-        buttonParams.y = 0;
+        buttonParams.y = 275;
         windowManager.addView(stopButton, buttonParams);
     }
 
