@@ -42,6 +42,8 @@ public class OverlayService extends Service {
 
     private final static String STOP_ACTION = "io.akessler.elixircounter.action.stop";
 
+    private final static String DISPLAY_ACTION = "io.akessler.elixircounter.action.display";
+
     private final static String DIGITS_SEARCH = "digits"; // FIXME In 2 locations
 
     WindowManager windowManager;
@@ -58,7 +60,7 @@ public class OverlayService extends Service {
 
     ElixirStore elixirStore;
 
-    private boolean recognizerReady;
+    private boolean recognizerReady, hidden;
 
     @Nullable
     @Override
@@ -128,6 +130,24 @@ public class OverlayService extends Service {
         startButton.show();
 
         speechText.setText("");
+    }
+
+    private void hide() {
+        elixirBar.setVisibility(View.INVISIBLE);
+        elixirText.setVisibility(View.INVISIBLE);
+        speechText.setVisibility(View.INVISIBLE);
+        startButton.setVisibility(View.INVISIBLE);
+
+        hidden = true;
+    }
+
+    private void show() {
+        elixirBar.setVisibility(View.VISIBLE);
+        elixirText.setVisibility(View.VISIBLE);
+        speechText.setVisibility(View.VISIBLE);
+        startButton.setVisibility(View.VISIBLE);
+
+        hidden = false;
     }
 
     private void runRecognizerSetup() {
@@ -287,12 +307,17 @@ public class OverlayService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if(STOP_ACTION.equals(intent.getAction())) {
+        String action = intent.getAction();
+        if(STOP_ACTION.equals(action)) {
             stop();
-        }
-        else if(EXIT_ACTION.equals(intent.getAction())) {
+        } else if(EXIT_ACTION.equals(action)) {
             stopForeground(true);
             stopSelf();
+        } else if(DISPLAY_ACTION.equals(action)) {
+            if(!hidden)
+                hide();
+            else
+                show();
         }
         return START_STICKY;
     }
@@ -320,15 +345,26 @@ public class OverlayService extends Service {
                 getText(R.string.button_exit),
                 exitPendingIntent).build();
 
+        Intent displayIntent = new Intent(this, OverlayService.class);
+        displayIntent.setAction(DISPLAY_ACTION);
+        PendingIntent displayPendingIntent = PendingIntent.getService(
+                this, 0, displayIntent, 0);
+        NotificationCompat.Action displayAction = new NotificationCompat.Action.Builder(
+                android.R.drawable.ic_menu_view,
+                getText(R.string.button_display),
+                displayPendingIntent).build();
+
         Notification notification = new NotificationCompat.Builder(this)
                 .setContentTitle(getText(R.string.notification_title))
                 .setContentText(getText(R.string.notification_message))
+                .setPriority(Notification.PRIORITY_MAX)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
                 .setColor(0xFF00FF)
-                .addAction(exitAction)
+                .addAction(displayAction)
                 .addAction(stopAction)
+                .addAction(exitAction)
                 .build();
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
