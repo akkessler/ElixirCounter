@@ -3,6 +3,7 @@
     <string name="notification_title">Service Status</string>
     <string name="notification_message">Running</string>
     <string name="button_start">Start</string>
+    <string name="button_stop">Stop</string>
     <string name="button_exit">Exit</string>
     <string name="timer_elixir1">1x elixir time complete.</string>
     <string name="timer_elixir2">2x elixir time complete.</string>

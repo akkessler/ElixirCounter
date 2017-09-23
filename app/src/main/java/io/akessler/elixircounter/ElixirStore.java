@@ -25,9 +25,13 @@ public class ElixirStore {
         this.elixirText = elixirText;
         this.elixirBar = elixirBar;
 
+        elixirBar.setMax(MAX_ELIXIR);
+        reset();
+    }
+
+    public void reset() {
         elixir = START_ELIXIR;
 
-        elixirBar.setMax(MAX_ELIXIR);
 
         updateElixirText();
         updateElixirBar();

@@ -5,7 +5,6 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.Typeface;
@@ -45,7 +44,7 @@ public class OverlayService extends Service {
 
     Button[] counterButtons;
 
-    Button startButton;
+    Button startButton, stopButton;
 
     CountDownTimer regularElixirTimer, doubleElixirTimer;
 
@@ -56,6 +55,8 @@ public class OverlayService extends Service {
     SpeechRecognizer recognizer;
 
     ElixirStore elixirStore;
+
+    private boolean recognizerReady;
 
     @Nullable
     @Override
@@ -72,7 +73,8 @@ public class OverlayService extends Service {
         initNotificationIntent();
 
         initTimers();
-        initStartButton(); // TODO initStopButton();
+        initStartButton();
+        initStopButton();
 //        initCounterButtons(); // Comment out since using SpeechRecognizer
         initElixirBar();
         initElixirText();
@@ -108,9 +110,40 @@ public class OverlayService extends Service {
 //        }
     }
 
+    private void start() {
+        if(recognizerReady && recognizer != null) {
+            recognizer.startListening(DIGITS_SEARCH);
+
+            initTimers(); // This call might not be needed?
+            regularElixirTimer.start();
+
+            startButton.setEnabled(false);
+            startButton.setVisibility(View.GONE);
+            stopButton.setEnabled(true);
+            stopButton.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void stop() {
+        if(recognizer != null) {
+            recognizer.cancel();
+        }
+
+        regularElixirTimer.cancel();
+        doubleElixirTimer.cancel();
+        elixirStore.reset();
+
+        startButton.setEnabled(true);
+        startButton.setVisibility(View.VISIBLE);
+        stopButton.setEnabled(false);
+        stopButton.setVisibility(View.GONE);
+        speechText.setText("");
+    }
+
     private void runRecognizerSetup() {
         // Recognizer initialization is a time-consuming and it involves IO,
         // so we execute it in async task
+        recognizerReady = false;
         new AsyncTask<Void, Void, Exception>() {
             @Override
             protected Exception doInBackground(Void... params) {
@@ -130,7 +163,7 @@ public class OverlayService extends Service {
                     String text = "Failed to init recognizer " + result;
                     Toast.makeText(OverlayService.this, text, Toast.LENGTH_SHORT).show();
                 } else {
-                    recognizer.startListening(DIGITS_SEARCH);
+                    recognizerReady = true;
                 }
             }
         }.execute();
@@ -181,9 +214,7 @@ public class OverlayService extends Service {
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                regularElixirTimer.start();
-                startButton.setEnabled(false);
-                startButton.setVisibility(View.GONE);
+                start();
             }
         });
         WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
@@ -193,10 +224,34 @@ public class OverlayService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
         );
-        buttonParams.gravity = Gravity.CENTER;
+        buttonParams.gravity = Gravity.BOTTOM | Gravity.LEFT;
         buttonParams.x = 0;
         buttonParams.y = 0;
         windowManager.addView(startButton, buttonParams);
+    }
+
+    private void initStopButton() {
+        stopButton = new Button(this);
+        stopButton.setEnabled(false);
+        stopButton.setVisibility(View.GONE);
+        stopButton.setText(R.string.button_stop);
+        stopButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stop();
+            }
+        });
+        WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT
+        );
+        buttonParams.gravity = Gravity.BOTTOM | Gravity.LEFT;
+        buttonParams.x = 0;
+        buttonParams.y = 0;
+        windowManager.addView(stopButton, buttonParams);
     }
 
     private void initCounterButtons() {
