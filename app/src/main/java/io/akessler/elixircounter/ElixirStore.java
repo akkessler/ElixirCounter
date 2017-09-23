@@ -1,5 +1,6 @@
 package io.akessler.elixircounter;
 
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 /**
@@ -15,14 +16,21 @@ public class ElixirStore {
 
     private int elixir;
 
+    private ProgressBar elixirBar;
+
     private TextView elixirText;
 
-    public ElixirStore(TextView elixirText) {
+
+    public ElixirStore(ProgressBar elixirBar, TextView elixirText) {
         this.elixirText = elixirText;
+        this.elixirBar = elixirBar;
 
         elixir = START_ELIXIR;
 
+        elixirBar.setMax(MAX_ELIXIR);
+
         updateElixirText();
+        updateElixirBar();
     }
 
     public void add(int i){
@@ -32,6 +40,7 @@ public class ElixirStore {
         } else if(elixir > MAX_ELIXIR) {
             elixir = MAX_ELIXIR;
         }
+        updateElixirBar();
         updateElixirText();
     }
 
@@ -39,8 +48,13 @@ public class ElixirStore {
         return elixir;
     }
 
+    private void updateElixirBar() {
+        elixirBar.setProgress(elixir);
+    }
+
     private void updateElixirText() {
         elixirText.setText(String.valueOf(elixir));
     }
+
 
 }
