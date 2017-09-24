@@ -4,9 +4,9 @@ Android overlay with speech recognition to count elixir for a popular mobile gam
 ## Installation
 After installing the `.apk` to your device, you must ensure the app has the proper permissions to run.
 
-Navigate to the application's settings and toggle `Draw over other apps` on. For my device, I get to this through `Settings > Apps > Application Manager > ElixirCounter`. After this, launch the app and hit allow when it asks for permission to record audio.
+Navigate to the application's settings and toggle `Draw over other apps` on. For my device running Android 7.0, I get to this through `Settings > Apps > Application Manager > ElixirCounter`. 
 
-That's it! 
+Next, launch the app and click allow when asked for permission to record audio.
 
 ## Usage
 
