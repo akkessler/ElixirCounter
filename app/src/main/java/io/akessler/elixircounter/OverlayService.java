@@ -30,6 +30,8 @@ import edu.cmu.pocketsphinx.Assets;
 import edu.cmu.pocketsphinx.SpeechRecognizer;
 import edu.cmu.pocketsphinx.SpeechRecognizerSetup;
 
+import static io.akessler.elixircounter.RecognitionListenerImpl.DIGITS_SEARCH;
+
 /**
  * Created by Andy on 9/14/2017.
  */
@@ -42,8 +44,6 @@ public class OverlayService extends Service {
     private final static String STOP_ACTION = "io.akessler.elixircounter.action.stop";
 
     private final static String DISPLAY_ACTION = "io.akessler.elixircounter.action.display";
-
-    private final static String DIGITS_SEARCH = "digits"; // FIXME In 2 locations
 
     WindowManager windowManager;
 
@@ -77,7 +77,7 @@ public class OverlayService extends Service {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,// WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // Use TYPE_SYSTEM_OVERLAY to draw over lock screen & notification drawer
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
         params.gravity = Gravity.CENTER;
@@ -90,7 +90,7 @@ public class OverlayService extends Service {
 
         initNotificationIntent();
         initTimers();
-        initStartButton();
+        initStartButton(); // TODO Extract this to XML
 
         elixirStore = new ElixirStore(elixirBar, elixirText);
 
@@ -117,7 +117,6 @@ public class OverlayService extends Service {
         if(recognizerReady && recognizer != null) {
             recognizer.startListening(DIGITS_SEARCH);
 
-            initTimers(); // This call might not be needed?
             regularElixirTimer.start();
 
             startButton.setEnabled(false);
@@ -234,13 +233,11 @@ public class OverlayService extends Service {
         WindowManager.LayoutParams buttonParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
         );
         buttonParams.gravity = Gravity.CENTER;
-        buttonParams.x = 0;
-        buttonParams.y = 0;
         windowManager.addView(startButton, buttonParams);
     }
 
@@ -253,10 +250,12 @@ public class OverlayService extends Service {
             stopForeground(true);
             stopSelf();
         } else if(DISPLAY_ACTION.equals(action)) {
-            if(!hidden)
+            if(!hidden) {
                 hide();
-            else
+            }
+            else {
                 show();
+            }
         }
         return START_STICKY;
     }
@@ -308,6 +307,5 @@ public class OverlayService extends Service {
 
         startForeground(ONGOING_NOTIFICATION_ID, notification);
     }
-
 
 }

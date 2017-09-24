@@ -12,7 +12,7 @@ import edu.cmu.pocketsphinx.SpeechRecognizer;
  */
 public class RecognitionListenerImpl implements RecognitionListener {
 
-    private final static String DIGITS_SEARCH = "digits"; // FIXME In 2 locations
+    public final static String DIGITS_SEARCH = "digits";
 
     private SpeechRecognizer recognizer;
 
