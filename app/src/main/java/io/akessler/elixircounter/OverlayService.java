@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
-import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.CountDownTimer;
 import android.os.IBinder;
@@ -16,8 +15,8 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.view.ContextThemeWrapper;
-import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
@@ -48,13 +47,15 @@ public class OverlayService extends Service {
 
     WindowManager windowManager;
 
-    FloatingActionButton startButton;
-
-    CountDownTimer regularElixirTimer, doubleElixirTimer;
+    View overlayView;
 
     ProgressBar elixirBar;
 
     TextView elixirText, speechText;
+
+    FloatingActionButton startButton;
+
+    CountDownTimer regularElixirTimer, doubleElixirTimer;
 
     SpeechRecognizer recognizer;
 
@@ -72,15 +73,24 @@ public class OverlayService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        LayoutInflater layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT,// WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT);
+        params.gravity = Gravity.CENTER;
+        overlayView = layoutInflater.inflate(R.layout.activity_overlay, null);
+        windowManager.addView(overlayView, params);
+
+        elixirBar = (ProgressBar) overlayView.findViewById(R.id.elixirBar);
+        elixirText = (TextView) overlayView.findViewById(R.id.elixirText);
+        speechText = (TextView) overlayView.findViewById(R.id.speechText);
 
         initNotificationIntent();
-
         initTimers();
         initStartButton();
-        initElixirBar();
-        initElixirText();
-        initSpeechText();
 
         elixirStore = new ElixirStore(elixirBar, elixirText);
 
@@ -99,10 +109,8 @@ public class OverlayService extends Service {
         regularElixirTimer.cancel();
         doubleElixirTimer.cancel();
 
-        windowManager.removeView(elixirBar);
+        windowManager.removeView(overlayView);
         windowManager.removeView(startButton);
-        windowManager.removeView(elixirText);
-        windowManager.removeView(speechText);
     }
 
     private void start() {
@@ -240,69 +248,6 @@ public class OverlayService extends Service {
         buttonParams.x = 0;
         buttonParams.y = 0;
         windowManager.addView(startButton, buttonParams);
-    }
-
-    private void initElixirBar() {
-        elixirBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
-        elixirBar.getProgressDrawable().setColorFilter(Color.MAGENTA, android.graphics.PorterDuff.Mode.SRC_IN);
-        elixirBar.setIndeterminate(false);
-        elixirBar.setScaleY(4f);
-        WindowManager.LayoutParams barParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT
-        );
-        barParams.gravity = Gravity.TOP;
-        // FIXME Change these values to be dynamic, based on dimensions of screen
-        barParams.x = 0;
-        barParams.y = 0;
-        windowManager.addView(elixirBar, barParams);
-    }
-
-    private void initElixirText() {
-        elixirText = new TextView(this);
-        elixirText.setTextColor(Color.MAGENTA);
-        elixirText.setTypeface(Typeface.MONOSPACE);
-        elixirText.setBackgroundColor(Color.argb(127,0,0,0));
-        elixirText.setTextSize(TypedValue.COMPLEX_UNIT_PT, 14);
-
-        WindowManager.LayoutParams textParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT
-        );
-        textParams.gravity = Gravity.TOP;
-        // FIXME Change these values to be dynamic, based on dimensions of screen
-        textParams.x = 0;
-        textParams.y = 100;
-        windowManager.addView(elixirText, textParams);
-    }
-
-    private void initSpeechText() {
-        speechText = new TextView(this);
-        speechText.setText("");
-        speechText.setTypeface(Typeface.MONOSPACE);
-        speechText.setTextColor(Color.MAGENTA);
-        speechText.setBackgroundColor(Color.argb(127,0,0,0));
-        speechText.setTextSize(TypedValue.COMPLEX_UNIT_PT, 14);
-        WindowManager.LayoutParams textParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.TYPE_SYSTEM_ALERT, // FIXME Acts up on certain API versions
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                        | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-                PixelFormat.TRANSLUCENT
-        );
-        textParams.gravity = Gravity.LEFT;
-        textParams.x = 0;
-        textParams.y = 0;
-        windowManager.addView(speechText, textParams);
     }
 
     @Override
