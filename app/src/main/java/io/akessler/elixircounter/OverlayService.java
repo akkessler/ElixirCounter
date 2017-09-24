@@ -141,20 +141,14 @@ public class OverlayService extends Service {
     }
 
     private void hide() {
-        elixirBar.setVisibility(View.INVISIBLE);
-        elixirText.setVisibility(View.INVISIBLE);
-        speechText.setVisibility(View.INVISIBLE);
+        overlayView.setVisibility(View.INVISIBLE);
         startButton.setVisibility(View.INVISIBLE);
-
         hidden = true;
     }
 
     private void show() {
-        elixirBar.setVisibility(View.VISIBLE);
-        elixirText.setVisibility(View.VISIBLE);
-        speechText.setVisibility(View.VISIBLE);
+        overlayView.setVisibility(View.VISIBLE);
         startButton.setVisibility(View.VISIBLE);
-
         hidden = false;
     }
 
