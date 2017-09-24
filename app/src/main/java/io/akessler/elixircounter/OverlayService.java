@@ -203,6 +203,7 @@ public class OverlayService extends Service {
 
             public void onFinish() {
                 Toast.makeText(OverlayService.this, R.string.timer_elixir2, Toast.LENGTH_SHORT).show();
+                stop();
             }
         };
 
