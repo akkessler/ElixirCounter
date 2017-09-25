@@ -10,9 +10,9 @@ Next, launch the app and click allow when asked for permission to record audio.
 
 ## Usage
 
-**To start** counting hit the magenta play button in the center. This will activate the timers and voice recognition systems. 
+**To start counting,** hit the magenta play button in the center. This will activate the timers and voice recognition systems. 
 
-**To interact** with the counter using voice, speak the following commands:
+**To interact with the counter,** speak the following commands:
 
 _Note: Voice recognition works best in a quiet environment!_
 
@@ -30,6 +30,6 @@ _Note: Voice recognition works best in a quiet environment!_
 | nine          | -9            |
 | ten           | -10           |
 
-The results of voice input are displayed along the left side of the screen.
+_The results of voice input are displayed along the left side of the screen._
 
-**To stop** the counter navigate to the notification drawer and hit the `Stop` or `Exit` actions.
+**To stop the counter,** navigate to the notification drawer and hit the `Stop` or `Exit` actions.
